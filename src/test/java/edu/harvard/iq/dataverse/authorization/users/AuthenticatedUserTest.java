@@ -6,15 +6,21 @@
 package edu.harvard.iq.dataverse.authorization.users;
 
 import edu.harvard.iq.dataverse.DatasetLock;
+import edu.harvard.iq.dataverse.UserNotification;
 import edu.harvard.iq.dataverse.authorization.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.authorization.AuthenticatedUserLookup;
 import edu.harvard.iq.dataverse.mocks.MocksFactory;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+
+import javax.json.JsonObject;
 
 /**
  * Tested class: AuthenticatedUser.java
@@ -30,6 +36,7 @@ public class AuthenticatedUserTest {
     public static Timestamp expResult;
     public static Timestamp loginTime = Timestamp.valueOf("2000-01-01 00:00:00.0");
     public static final String IDENTIFIER_PREFIX = "@";
+    public static final List<UserNotification.Type> mutedTypes = Arrays.asList(UserNotification.Type.ASSIGNROLE, UserNotification.Type.REVOKEROLE);
 
     @Before
     public void setUp() {
@@ -320,6 +327,67 @@ public class AuthenticatedUserTest {
         int result = instance.hashCode();
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testMutingEmails() {
+        long mutedTypesFlags = UserNotification.Type.toFlag(mutedTypes);
+        System.out.println("setMutedEmails");
+        testUser.setMutedEmails(mutedTypesFlags);
+        assertEquals(mutedTypesFlags, testUser.getMutedEmails().longValue());
+        assertEquals(mutedTypes, UserNotification.Type.fromFlag(testUser.getMutedEmails()));
+    }
+
+    @Test
+    public void testMutingNotifications() {
+        long mutedTypesFlags = UserNotification.Type.toFlag(mutedTypes);
+        System.out.println("setMutedNotifications");
+        testUser.setMutedNotifications(mutedTypesFlags);
+        assertEquals(mutedTypesFlags, testUser.getMutedNotifications().longValue());
+        assertEquals(mutedTypes, UserNotification.Type.fromFlag(testUser.getMutedNotifications()));
+    }
+
+    @Test
+    public void testMutingInJson() {
+        long mutedTypesFlags = UserNotification.Type.toFlag(mutedTypes);
+        testUser.setMutedEmails(mutedTypesFlags);
+        testUser.setMutedNotifications(mutedTypesFlags);
+        System.out.println("toJson");
+        JsonObject jObject = testUser.toJson().build();
+        assertEquals("ASSIGNROLE,REVOKEROLE", jObject.getString("mutedEmails"));
+        assertEquals("ASSIGNROLE,REVOKEROLE", jObject.getString("mutedNotifications"));
+    }
+
+    @Test
+    public void testHasEmailMuted() {
+        long mutedTypesFlags = UserNotification.Type.toFlag(mutedTypes);
+        testUser.setMutedEmails(mutedTypesFlags);
+        System.out.println("hasEmailMuted");
+        assertEquals(true, testUser.hasEmailMuted(UserNotification.Type.ASSIGNROLE));
+        assertEquals(true, testUser.hasEmailMuted(UserNotification.Type.REVOKEROLE));
+        assertEquals(false, testUser.hasEmailMuted(UserNotification.Type.CREATEDV));
+        assertEquals(false, testUser.hasEmailMuted(null));
+    }
+
+    @Test
+    public void testHasNotificationsMutedMuted() {
+        long mutedTypesFlags = UserNotification.Type.toFlag(mutedTypes);
+        testUser.setMutedNotifications(mutedTypesFlags);
+        System.out.println("hasNotificationMuted");
+        assertEquals(true, testUser.hasNotificationMuted(UserNotification.Type.ASSIGNROLE));
+        assertEquals(true, testUser.hasNotificationMuted(UserNotification.Type.REVOKEROLE));
+        assertEquals(false, testUser.hasNotificationMuted(UserNotification.Type.CREATEDV));
+        assertEquals(false, testUser.hasNotificationMuted(null));
+    }
+
+    @Test
+    public void testTypeTokenizer() {
+        final Set<UserNotification.Type> typeSet = UserNotification.Type.tokenizeToSet(" ASSIGNROLE , CREATEDV,REVOKEROLE  ");
+        assertTrue("typeSet contains 3 elements", typeSet.size() == 3);
+        assertTrue("typeSet contains ASSIGNROLE", typeSet.contains(UserNotification.Type.ASSIGNROLE));
+        assertTrue("typeSet contains CREATEDV", typeSet.contains(UserNotification.Type.CREATEDV));
+        assertTrue("typeSet contains REVOKEROLE", typeSet.contains(UserNotification.Type.REVOKEROLE));
+    }
+
     /**
      * All commented tests below have only been generated / are not complete for
      * AuthenticatedUser.java The tests above should all run fine, due to time
