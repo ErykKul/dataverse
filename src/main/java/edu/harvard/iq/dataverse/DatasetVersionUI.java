@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+
 import javax.ejb.EJB;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
@@ -30,6 +32,8 @@ import javax.persistence.PersistenceContext;
  */
 @ViewScoped
 public class DatasetVersionUI implements Serializable {
+
+    private static final Logger logger = Logger.getLogger(DatasetVersionUI.class.getCanonicalName());
 
     @EJB
     DataverseServiceBean dataverseService;
@@ -252,6 +256,20 @@ public class DatasetVersionUI implements Serializable {
         } else {
             return "";
         }
+    }
+
+    public String getRelPublicationIdUrl() {
+        final String id = this.getRelPublicationId();
+        if (!id.isEmpty()) {
+            try {
+                final GlobalId gid = new GlobalId(id);
+                return gid.toURL().toString();
+            } catch (IllegalArgumentException e) {
+                logger.warning("Related publication Id \"" + id + "\" could not be converted to URL: " + e.getMessage());
+                return "";
+            }
+        }
+        return "";
     }
     
     public String getRelPublicationUrl() {
