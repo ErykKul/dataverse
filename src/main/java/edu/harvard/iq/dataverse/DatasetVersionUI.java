@@ -258,6 +258,17 @@ public class DatasetVersionUI implements Serializable {
         }
     }
 
+    public boolean isRenderRelPublicationIdUrl() {
+        final String citString = getRelPublicationCitation();
+        final String pubidUrl = getRelPublicationIdUrl();
+        final String pubid = getRelPublicationId();
+        final String pubUrl = getRelPublicationUrl();
+        //by default, we render the identifier URL if it is not empty and is not contained in the citation
+        boolean rendered = !pubidUrl.isEmpty() && !citString.contains(pubidUrl) && !citString.contains(pubid);
+        //however, if we do not render relative publication URL, we render the identifier URL such that at list one clickable link is present
+        return rendered || (!pubidUrl.isEmpty() && !isRenderRelPublicationUrl());
+    }
+
     public String getRelPublicationIdUrl() {
         final String id = this.getRelPublicationId();
         if (!id.isEmpty()) {
@@ -270,6 +281,15 @@ public class DatasetVersionUI implements Serializable {
             }
         }
         return "";
+    }
+
+    public boolean isRenderRelPublicationUrl() {
+        final String citString = getRelPublicationCitation();
+        final String pubidUrl = getRelPublicationIdUrl();
+        final String pubUrl = getRelPublicationUrl();
+        //we render the relative publication URL if it is not empty, not equal to identifier URL and is not contained in the citation
+        //we also render the publication URL as fallback when the identifier URL is empty such that at list one clickable link is present
+        return !pubUrl.isEmpty() && (!citString.contains(pubUrl) || pubidUrl.isEmpty()) && !pubUrl.equals(pubidUrl);
     }
     
     public String getRelPublicationUrl() {

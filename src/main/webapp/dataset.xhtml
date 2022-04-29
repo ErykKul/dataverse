@@ -598,7 +598,12 @@
                                                         </th>
                                                         <td jsf:rendered="#{!DatasetPage.anonymizedAccess or !settingsWrapper.shouldBeAnonymized(dsf)}">
                                                             <h:outputText value="#{MarkupChecker:sanitizeBasicHTML(DatasetPage.datasetVersionUI.relPublicationCitation)}" escape="false"/>
-                                                            <a href="#{DatasetPage.datasetVersionUI.relPublicationIdUrl}" title="#{DatasetPage.datasetVersionUI.relPublicationIdUrl}" target="_blank" rel="noopener">#{DatasetPage.datasetVersionUI.relPublicationId}</a>
+                                                            <ui:fragment rendered="#{DatasetPage.datasetVersionUI.renderRelPublicationIdUrl}">
+                                                                <a href="#{DatasetPage.datasetVersionUI.relPublicationIdUrl}" title="#{DatasetPage.datasetVersionUI.relPublicationIdUrl}" target="_blank" rel="noopener">#{DatasetPage.datasetVersionUI.relPublicationId}</a>
+                                                            </ui:fragment>
+                                                            <ui:fragment rendered="#{DatasetPage.datasetVersionUI.renderRelPublicationUrl}">
+                                                                <a href="#{DatasetPage.datasetVersionUI.relPublicationUrl}" title="#{DatasetPage.datasetVersionUI.relPublicationUrl}" target="_blank" rel="noopener">#{DatasetPage.datasetVersionUI.relPublicationUrl}</a>
+                                                            </ui:fragment>
                                                         </td>
                                                         <td jsf:rendered="#{DatasetPage.anonymizedAccess and settingsWrapper.shouldBeAnonymized(dsf)}">
                                                             <h:outputText value="#{bundle['dataset.anonymized.withheld']}"/>
