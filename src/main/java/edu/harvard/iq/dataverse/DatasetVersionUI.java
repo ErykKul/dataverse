@@ -271,6 +271,13 @@ public class DatasetVersionUI implements Serializable {
         }
         return "";
     }
+
+    public boolean isRenderRelPublicationUrl() {
+        final String citString = getRelPublicationCitation();
+        final String pubidUrl = getRelPublicationIdUrl();
+        final String pubUrl = getRelPublicationUrl();
+        return !pubUrl.isEmpty() && !citString.contains(pubUrl) && !pubUrl.equals(pubidUrl);
+    }
     
     public String getRelPublicationUrl() {
         if (!this.datasetRelPublications.isEmpty()) {
