@@ -112,7 +112,7 @@ This enables the new feature in the notifications page. The users can then selec
 
 After enabling this feature, all notifications are enabled by default, until this is changed by the user.
 
-You can then shorten this list by permanently disabling some notification types (e.g., ``ASSIGNROLE`` and ``REVOKEROLE``) that become always muted for everyone and not manageable by users (not visible in the user interface) with the following setting:
+You can then shorten this list by configuring some notification types (e.g., ``ASSIGNROLE`` and ``REVOKEROLE``) to be always muted for everyone and not manageable by users (not visible in the user interface) with the following setting:
 
 ``curl -X PUT -d 'ASSIGNROLE,REVOKEROLE' http://localhost:8080/api/admin/settings/:AlwaysMuted``
 

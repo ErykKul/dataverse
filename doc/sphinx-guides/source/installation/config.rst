@@ -2719,10 +2719,6 @@ To remove the override and go back to the default list:
 
 ``curl -X PUT -d '' http://localhost:8080/api/admin/settings/:FileCategories``
 
-.. To edit, use dvBrandingCustBlocks.drawio with https://app.diagrams.net
-.. |dvPageBlocks| image:: ./img/dvBrandingCustBlocks.png
-   :class: img-responsive
-
 :ShowMuteOptions
 ++++++++++++++++
 
@@ -2779,7 +2775,7 @@ To remove the override and go back to the empty list:
 :NeverMuted
 +++++++++++
 
-Overrides the default empty list of never muted notifications. Never muted notifications cannot be muted by the users. Always muted notifications are grayd out and are not adjustable by the user.
+Overrides the default empty list of never muted notifications. Never muted notifications cannot be muted by the users. Always muted notifications are grayed out and are not adjustable by the user.
 
 This setting is a comma-separated list of the notification types.
 
@@ -2790,3 +2786,8 @@ To override the default empty list with REQUESTFILEACCESS, GRANTFILEACCESS, REJE
 To remove the override and go back to the empty list:
 
 ``curl -X PUT -d '' http://localhost:8080/api/admin/settings/:NeverMuted``
+
+.. To edit, use dvBrandingCustBlocks.drawio with https://app.diagrams.net
+.. |dvPageBlocks| image:: ./img/dvBrandingCustBlocks.png
+   :class: img-responsive
+   
