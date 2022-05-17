@@ -25,6 +25,7 @@
         <jacoco.version>0.8.7</jacoco.version>
         <poi.version>5.2.1</poi.version>
         <tika.version>2.3.0</tika.version>
+        <clamav-client.version>1.0.1</clamav-client.version>
     </properties>
     
     <!-- Versions of dependencies used both directly and transitive are managed here.
@@ -605,6 +606,11 @@
             <artifactId>microbean-microprofile-config</artifactId>
             <version>${microbean-mpconfig.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fi.solita.clamav</groupId>
+            <artifactId>clamav-client</artifactId>
+            <version>${clamav-client.version}</version>
         </dependency>
     </dependencies>
     <build>
