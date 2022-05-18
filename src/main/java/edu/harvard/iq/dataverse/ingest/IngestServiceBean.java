@@ -172,7 +172,7 @@ public class IngestServiceBean {
             IngestUtil.checkForDuplicateFileNamesFinal(version, newFiles, fileToReplace);
 			Dataset dataset = version.getDataset();
             String clHostname = "clamav";
-            Integer clPort = 7010;
+            Integer clPort = 3310;
             ClamAVClient cl = null;
             if (clHostname != null && clPort != null) {
                 cl = new ClamAVClient(clHostname, clPort);
@@ -191,7 +191,13 @@ public class IngestServiceBean {
 				String storageLocation = storageInfo[1];
 				String tempFileLocation = null;
 				Path tempLocationPath = null;
-                StorageIO<DvObject> dataAccess = null;
+                
+                boolean clean =  scanAV(cl, dataFile);
+                if (!clean) {
+                    ret.add(dataFile);
+                    continue;
+                }
+
 				if (driverType.equals("tmp")) {  //"tmp" is the default if no prefix or the "tmp://" driver
 					tempFileLocation = FileUtil.getFilesTempDirectory() + "/" + storageLocation;
 
@@ -199,6 +205,8 @@ public class IngestServiceBean {
 					tempLocationPath = Paths.get(tempFileLocation);
 					WritableByteChannel writeChannel = null;
 					FileChannel readChannel = null;
+
+                    StorageIO<DvObject> dataAccess = null;
 
 					try {
 						logger.fine("Attempting to create a new storageIO object for " + storageLocation);
@@ -305,7 +313,7 @@ public class IngestServiceBean {
 					// performPostProcessingTasks(dataFile);
 				} else {
 					try {
-						dataAccess = DataAccess.getStorageIO(dataFile);
+						StorageIO<DvObject> dataAccess = DataAccess.getStorageIO(dataFile);
 						//Populate metadata
 						dataAccess.open(DataAccessOption.READ_ACCESS);
 						//set file size
@@ -322,8 +330,6 @@ public class IngestServiceBean {
 				}
 
 				logger.fine("Done! Finished saving new files in permanent storage and adding them to the dataset.");
-                
-                savedSuccess =  scanAV(cl, dataAccess, savedSuccess);
 
 				boolean belowLimit = false;
 
@@ -424,28 +430,34 @@ public class IngestServiceBean {
 		return ret;
 	}
 
-    private boolean scanAV(ClamAVClient cl, StorageIO<DvObject> dataAccess, boolean savedSuccess) {
-        boolean success = true;
-        if (cl != null && savedSuccess) {
+    private boolean scanAV(ClamAVClient cl, DataFile dataFile) {
+        boolean clean = true;
+        if (cl != null) {
+            StorageIO<DataFile> storageIO = null;
             byte[] reply;
             try {
-                reply = cl.scan(dataAccess.getInputStream());
+                storageIO = dataFile.getStorageIO();
+                storageIO.open(DataAccessOption.WRITE_ACCESS);
+                reply = cl.scan(storageIO.getInputStream());
             } catch (Exception e) {
                 logger.warning("Could not scan the input: " + e.getMessage());
-                reply = "scan failed".getBytes();
+                return clean;
             }
             if (!ClamAVClient.isCleanReply(reply)) {
-                success = false;
+                clean = false;
                 String message = new String(reply, StandardCharsets.US_ASCII);
                 logger.warning("Problem detected when scanning with ClamAV: " + message);
                 try {
-                    dataAccess.delete();
+                    storageIO.delete();
                 } catch (IOException e) {
                     logger.warning("Failed to delete file after unclean scan wit ClamAV: " + e.getMessage());
                 }
+                storageIO.setErrorMessage(message);
+                dataFile.SetIngestProblem();
+                FileUtil.createIngestFailureReport(dataFile, message);
             }
         }
-        return savedSuccess && success;
+        return clean;
     }
     
     public List<Path> listGeneratedTempFiles(Path tempDirectory, String baseName) {
