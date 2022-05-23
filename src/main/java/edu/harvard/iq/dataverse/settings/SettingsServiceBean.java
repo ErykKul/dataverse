@@ -522,7 +522,11 @@ public class SettingsServiceBean {
          * would also work) of never muted notifications that cannot be turned off by the users. AlwaysMuted setting overrides
          * Nevermuted setting warning is logged.
          */
-        NeverMuted
+        NeverMuted,
+        /*
+         * Allow a custom JavaScript to control values of specific fields.
+         */
+        ControlledVocabularyCustomJavaScript
         ;
 
         @Override

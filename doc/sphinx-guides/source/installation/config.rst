@@ -2814,3 +2814,21 @@ For configuration details, see :ref:`mute-notifications`.
 Overrides the default empty list of never muted notifications. Never muted notifications cannot be muted by the users. Always muted notifications are grayed out and are not adjustable by the user.
 
 For configuration details, see :ref:`mute-notifications`.
+:ControlledVocabularyCustomJavaScript
++++++++++++++++++++++++++++++++++++++
+
+We can have controlled vocabulary as a list locally (with optionally translated values). But if the list is large and needs to be maintained, it is more advantageous to have, for example, a lookup functionality that allows to search for the values at an external service. We can have external controlled vocabularies with "skosmos" protocol (or other, using URI bound terms), but this is an overkill for a simple list (enumeration) for one field (e.g., author name using author lookup) that does not have any translations or URIs.
+
+A more desirable solution is to allow a custom JavaScript to control values of specific fields.
+
+To specify a custom script ``/covoc/js/covoc.js`` to be loaded:
+
+``curl -X PUT -d '/covoc/js/covoc.js' http://localhost:8080/api/admin/settings/:ControlledVocabularyCustomJavaScript``
+
+To remove the custom script:
+
+``curl -X PUT -d '' http://localhost:8080/api/admin/settings/:ControlledVocabularyCustomJavaScript``
+
+.. To edit, use dvBrandingCustBlocks.drawio with https://app.diagrams.net
+.. |dvPageBlocks| image:: ./img/dvBrandingCustBlocks.png
+   :class: img-responsive
