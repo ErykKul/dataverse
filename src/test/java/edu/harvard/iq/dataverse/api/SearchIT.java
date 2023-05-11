@@ -762,6 +762,7 @@ public class SearchIT {
                 .statusCode(OK.getStatusCode());
 
         searchPart = identifier.replace("FK2/", "");
+        UtilIT.sleepForReindex(identifier, apiToken, 5);
         Response searchTargeted = UtilIT.search("dsPersistentId:" + searchPart, apiToken);
         searchTargeted.prettyPrint();
         searchTargeted.then().assertThat()
