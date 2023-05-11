@@ -488,6 +488,14 @@ A Dataverse installation can alternately store files in a Swift or S3-compatible
 
 A Dataverse installation may also be configured to reference some files (e.g. large and/or sensitive data) stored in a web-accessible trusted remote store.
 
+A Dataverse installation can be configured to allow out of band upload by setting the ``dataverse.files.\<id\>.upload-out-of-band`` JVM option to ``true``.
+This option allows API users to add files with the :ref:`add-file-api` call. It also allows API users to register the metadata of a file with the :ref:`add-file-metadata-api` call for a file that was uploaded directly to the storage.
+
+The option is useful in cases in which an S3 storage is not used or made public, as required by the ``dataverse.files.\<id\>.upload-redirect`` option. An example would be building a tool for synchronizing datasets with files from a third-party repository. In such a case, the tool would upload files directly to the storage, and then use :ref:`add-file-metadata-api` to link them to a dataset.
+
+Note that if a Dataverse installation uses S3-storage while the ``dataverse.files.\<id\>.upload-redirect`` JVM option is enabled, the ``upload-out-of-band`` setting is overruled. This results in direct upload being enabled even with the ``upload-out-of-band`` option not set (or set to false).
+When the ``upload-out-of-band`` option is not set to ``true`` and it isn't being overruled by the previously mentioned combination, adding files using the API will not be possible and will return the "Dataset store configuration does not allow provided storageIdentifier" error.
+
 The following sections describe how to set up various types of stores and how to configure for multiple stores.
 
 Multi-store Basics
@@ -788,7 +796,8 @@ List of S3 Storage Options
     dataverse.files.<id>.label                   <?>                 **Required** label to be shown in the UI for this storage                   (none)
     dataverse.files.<id>.bucket-name             <?>                 The bucket name. See above.                                                 (none)
     dataverse.files.<id>.download-redirect       ``true``/``false``  Enable direct download or proxy through Dataverse.                          ``false``
-    dataverse.files.<id>.upload-redirect         ``true``/``false``  Enable direct upload of files added to a dataset  to the S3 store.          ``false``
+    dataverse.files.<id>.upload-redirect         ``true``/``false``  Enable direct upload of files added to a dataset in the S3 store.           ``false``
+    dataverse.files.<id>.upload-out-of-band      ``true``/``false``  Enable direct upload of files added to a dataset via API only.              ``false``
     dataverse.files.<id>.ingestsizelimit         <size in bytes>     Maximum size of directupload files that should be ingested                  (none)
     dataverse.files.<id>.url-expiration-minutes  <?>                 If direct uploads/downloads: time until links expire. Optional.             60
     dataverse.files.<id>.min-part-size           <?>                 Multipart direct uploads will occur for files larger than this. Optional.   ``1024**3``
