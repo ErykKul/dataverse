@@ -420,7 +420,7 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>oauth2-oidc-sdk</artifactId>
-            <version>10.7.1</version>
+            <version>10.13</version>
         </dependency>
         <!-- New and Improved GDCC XOAI library! -->
         <dependency>
@@ -805,7 +805,7 @@
                 <conf.image>gdcc/configbaker:${conf.image.tag}</conf.image>
                 <conf.image.tag>${app.image.tag}</conf.image.tag>
     
-                <docker.platforms></docker.platforms>
+                <docker.platforms/>
             
                 <!-- Variables as used in docker-compose.yml -->
                 <APP_IMAGE>${app.image}</APP_IMAGE>
