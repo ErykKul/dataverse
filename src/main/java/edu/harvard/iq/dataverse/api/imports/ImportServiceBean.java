@@ -208,7 +208,13 @@ public class ImportServiceBean {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Dataset doImportHarvestedDataset(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, String harvestIdentifier, String metadataFormat, File metadataFile, Date oaiDateStamp, PrintWriter cleanupLog) throws ImportException, IOException {
+    public Dataset doImportHarvestedDataset(DataverseRequest dataverseRequest, 
+            HarvestingClient harvestingClient, 
+            String harvestIdentifier, 
+            String metadataFormat, 
+            File metadataFile, 
+            Date oaiDateStamp, 
+            PrintWriter cleanupLog) throws ImportException, IOException {
         if (harvestingClient == null || harvestingClient.getDataverse() == null) {
             throw new ImportException("importHarvestedDataset called with a null harvestingClient, or an invalid harvestingClient.");
         }
@@ -244,8 +250,8 @@ public class ImportServiceBean {
         } else if ("dc".equalsIgnoreCase(metadataFormat) || "oai_dc".equals(metadataFormat)) {
             logger.fine("importing DC "+metadataFile.getAbsolutePath());
             try {
-                String xmlToParse = new String(Files.readAllBytes(metadataFile.toPath()));
-                dsDTO = importGenericService.processOAIDCxml(xmlToParse);
+                String xmlToParse = new String(Files.readAllBytes(metadataFile.toPath())); 
+                dsDTO = importGenericService.processOAIDCxml(xmlToParse, harvestIdentifier, harvestingClient.isUseOaiIdentifiersAsPids());
             } catch (IOException | XMLStreamException e) {
                 throw new ImportException("Failed to process Dublin Core XML record: "+ e.getClass() + " (" + e.getMessage() + ")");
             }
@@ -313,7 +319,7 @@ public class ImportServiceBean {
                 // Creating a new dataset from scratch:
                 
                 harvestedDataset = parser.parseDataset(obj);
-                
+
                 harvestedDataset.setHarvestedFrom(harvestingClient);
                 harvestedDataset.setHarvestIdentifier(harvestIdentifier);
                 
@@ -359,12 +365,7 @@ public class ImportServiceBean {
             if (harvestedVersion.getReleaseTime() == null) {
                 harvestedVersion.setReleaseTime(oaiDateStamp);
             }
-            
-            // is this the right place to call tidyUpFields()? 
-            // usually it is called within the body of the create/update commands
-            // later on.
-            DatasetFieldUtil.tidyUpFields(harvestedVersion.getDatasetFields(), true);
-            
+                        
             // Check data against validation constraints. 
             // Make an attempt to sanitize any invalid fields encountered - 
             // missing required fields or invalid values, by filling the values 
@@ -382,7 +383,9 @@ public class ImportServiceBean {
             if (sanitized) {
                 validateVersionMetadata(harvestedVersion, cleanupLog);
             }
-            
+               
+            DatasetFieldUtil.tidyUpFields(harvestedVersion.getDatasetFields(), true);
+
             if (existingDataset != null) {
                 importedDataset = engineSvc.submit(new UpdateHarvestedDatasetCommand(existingDataset, harvestedVersion, dataverseRequest));
             } else {
@@ -742,15 +745,35 @@ public class ImportServiceBean {
         boolean fixed = false;
         Set<ConstraintViolation> invalidViolations = version.validate();
         if (!invalidViolations.isEmpty()) {
-            for (ConstraintViolation<DatasetFieldValue> v : invalidViolations) {
-                DatasetFieldValue f = v.getRootBean();
-
-                String msg = "Invalid metadata field: " + f.getDatasetField().getDatasetFieldType().getDisplayName() + "; "
-                        + "Invalid value:  '" + f.getValue() + "'";
-                if (sanitize) {
-                    msg += ", replaced with '" + DatasetField.NA_VALUE + "'";
-                    f.setValue(DatasetField.NA_VALUE);
-                    fixed = true;
+            for (ConstraintViolation v : invalidViolations) {
+                Object invalid = v.getRootBean();
+                String msg = "";
+                if (invalid instanceof DatasetField) {
+                    DatasetField f = (DatasetField) invalid; 
+                    
+                    msg += "Missing required field: " + f.getDatasetFieldType().getDisplayName() + ";";                  
+                    if (sanitize) {
+                        msg += " populated with '" + DatasetField.NA_VALUE + "'";
+                        f.setSingleValue(DatasetField.NA_VALUE);
+                        fixed = true;
+                    }
+                } else if (invalid instanceof DatasetFieldValue) {
+                    DatasetFieldValue fv = (DatasetFieldValue) invalid;
+                    
+                    msg += "Invalid metadata field: " + fv.getDatasetField().getDatasetFieldType().getDisplayName() + "; "
+                            + "Invalid value:  '" + fv.getValue() + "'";
+                    if (sanitize) {
+                        msg += ", replaced with '" + DatasetField.NA_VALUE + "'";
+                        fv.setValue(DatasetField.NA_VALUE);
+                        fixed = true;
+                    }
+                } else {
+                    // DatasetVersion.validate() can also produce constraint violations
+                    // in TermsOfUse and FileMetadata classes. 
+                    // We do not make any attempt to sanitize those.
+                    if (invalid != null) {
+                        msg += "Invalid " + invalid.getClass().getName() + ": " + v.getMessage();
+                    }
                 }
                 cleanupLog.println(msg);
 
